@@ -1,0 +1,16 @@
+{
+    "name": "Last Read Tweet",
+    "version": "1",
+    "description": "Open Twitter with last read tweet",
+    "icons": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png" },
+    "content_scripts":[
+      {
+        "matches": ["https://twitter.com/"],
+        "js": ["jquery-3.5.1.slim.min.js", "script.js"]
+      }
+    ],
+    "manifest_version": 2
+  }
