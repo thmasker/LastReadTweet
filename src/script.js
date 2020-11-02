@@ -1,89 +1,104 @@
 var twitterURL = "https://twitter.com/home";
 var twitterURL2 = "https://twitter.com/";
+var MAX_HOURS = 24;
 
-$(window).on('load', function() {
+var tweetValues = new Array();
+var maxDate = new Date();
 
-  function findTweet(tweet) {
-    var aes = document.getElementsByTagName('a');
+function findTweet(tweet) {
+  var aes = document.getElementsByTagName('a');
 
-    for (let a of aes) {
-      if (a.href == tweet) {
-        console.log('Last tweet found');
-        return a;
-      }
+  for (let a of aes) {
+    if (a.href == tweet) {
+      console.log('Last tweet found');
+      return a;
     }
-
-    console.log('Last tweet not found');
-    return null;
   }
 
-  function scrollToTweet(tweet) {
-    tweet.scrollIntoView(true);
+  console.log('Last tweet not found');
+  return null;
+}
 
-    var y = $(window).scrollTop();
-    $(window).scrollTop(y - 75);
+function scrollToTweet(tweet) {
+  tweet.scrollIntoView(true);
+
+  var y = $(window).scrollTop();
+  $(window).scrollTop(y - 75);
+}
+
+function search_tweet(tweet) {
+  var lastTweet = findTweet(tweet);
+
+  if (lastTweet == null) {
+    window.scrollTo(0, document.body.scrollHeight);
+
+    setTimeout(function() {
+        search_tweet(tweet);
+    }, 500);
+  } else {
+    scrollToTweet(lastTweet);
   }
+}
 
-  function search_tweet(tweet) {
+function goToLastTweet(tweet) {
+  if (tweet != null) {
     var lastTweet = findTweet(tweet);
-
+    
     if (lastTweet == null) {
-      window.scrollTo(0, document.body.scrollHeight);
-
-      setTimeout(function() {
-          search_tweet(tweet);
-      });
+      search_tweet(tweet);
     } else {
       scrollToTweet(lastTweet);
     }
   }
+}
 
-  function goToLastTweet() {
-    var tweet = localStorage['lastTweet'];
+function getLastTweet() {
+  var section = document.getElementsByTagName('section')[0];
+  var article = section.getElementsByTagName('article')[0];
+  var tweet = article.querySelector('[data-testid="tweet"]');
+  var link = tweet.getElementsByTagName('a')[2];
+  var lastTweet = link.href;
 
-    if (tweet != null) {
-      var lastTweet = findTweet(tweet);
-      
-      if (lastTweet == null) {
-        search_tweet(tweet);
-      } else {
-        scrollToTweet(lastTweet);
-      }
-    }
-  }
+  maxDate.setHours(maxDate.getHours() + MAX_HOURS);
+  tweetValues.push(lastTweet);
+  tweetValues.push(maxDate);
 
-  function getLastTweet() {
-    var section = document.getElementsByTagName('section')[0];
-    var article = section.getElementsByTagName('article')[0];
-    var tweet = article.querySelector('[data-testid="tweet"]');
-    var link = tweet.getElementsByTagName('a')[2];
-    var lastTweet = link.href;
+  localStorage.setItem('lastTweet', tweetValues.join(';'));
+  console.log('Last tweet saved: ' + lastTweet);
+}
 
-    localStorage.setItem('lastTweet', lastTweet);
-    console.log('Last tweet saved: ' + lastTweet);
-  }
-
-  function checkURL() {
-    if (location.href.toLowerCase() === twitterURL) {
-      try {
-        getLastTweet();
-      } catch (error) {
-        if (error instanceof TypeError) {
-          console.log('Could not save last tweet');
-        }
-      }
-    }
-
-    setTimeout(function() {
-      checkURL();
-    }, 1000);
-  }
-
-  console.log('Last tweet is ' + localStorage['lastTweet']);
-
+function inLocation() {
   if (location.href.toLowerCase() === twitterURL || location.href.toLowerCase() === twitterURL2) {
-    goToLastTweet();
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function checkURL() {
+  if (inLocation()) {
+    getLastTweet();
+  }
+}
+
+function validateLastTweet() {
+  var savedTweet = localStorage['lastTweet'].split(';');
+  if (savedTweet[1] < new Date()) {
+    localStorage.removeItem('lastTweet');
+    return null;
   }
   
-  checkURL();
+  return savedTweet[0];
+}
+
+$(window).on('load', function() {
+  if (inLocation()) {
+    var lastTweet = validateLastTweet();
+    goToLastTweet(lastTweet);
+  }
+
+  window.onbeforeunload = function() {
+    checkURL();
+    return null;
+  };
 });
