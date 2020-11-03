@@ -1,6 +1,7 @@
 var twitterURL = "https://twitter.com/home";
 var twitterURL2 = "https://twitter.com/";
 var MAX_HOURS = 24;
+var MAX_WAITING_TIME = 30000;
 
 var tweetValues = new Array();
 var maxDate = new Date();
@@ -26,17 +27,21 @@ function scrollToTweet(tweet) {
   $(window).scrollTop(y - 75);
 }
 
-function search_tweet(tweet) {
+function search_tweet(tweet, maxTime) {
   var lastTweet = findTweet(tweet);
 
-  if (lastTweet == null) {
-    window.scrollTo(0, document.body.scrollHeight);
-
-    setTimeout(function() {
-        search_tweet(tweet);
-    }, 500);
+  if (maxTime > Date.now()) {
+    if (lastTweet == null) {
+      window.scrollTo(0, document.body.scrollHeight);
+  
+      setTimeout(function() {
+          search_tweet(tweet, maxTime);
+      }, 500);
+    } else {
+      scrollToTweet(lastTweet);
+    }
   } else {
-    scrollToTweet(lastTweet);
+    console.log('Stopping search');
   }
 }
 
@@ -45,7 +50,8 @@ function goToLastTweet(tweet) {
     var lastTweet = findTweet(tweet);
     
     if (lastTweet == null) {
-      search_tweet(tweet);
+      var maxTime = Date.now() + MAX_WAITING_TIME;
+      search_tweet(tweet, maxTime);
     } else {
       scrollToTweet(lastTweet);
     }
