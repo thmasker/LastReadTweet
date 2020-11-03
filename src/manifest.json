@@ -1,6 +1,6 @@
 {
     "name": "Last Read Tweet",
-    "version": "1",
+    "version": "1.1",
     "description": "Open Twitter with last read tweet",
     "icons": {
       "16": "images/icon16.png",
